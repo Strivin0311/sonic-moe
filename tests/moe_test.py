@@ -23,6 +23,10 @@ class MoETest(TestCommons):
             [torch.device("cuda")],
             [torch.bfloat16],
             [
+                # T, H, I, E, K
+                # test for small hidden size
+                (8192, 128, 256, 128, 8),
+                # original test
                 (8192, 768, 256, 128, 8),
                 (8192, 768, 512, 64, 4),
                 (8192, 768, 1024, 32, 2),
