@@ -42,11 +42,11 @@ class HopperWgmma_MoE_Up_proj_Fwd:
         is_glu_activation = is_glu(activation_type)
         if is_glu_activation:
             assert (
-                H % 64 == 0 and H >= 512 and I % 64 == 0
+                H % 64 == 0 and I % 64 == 0
             ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
         else:
             assert (
-                H % 64 == 0 and H >= 512 and I % 128 == 0
+                H % 64 == 0 and I % 128 == 0
             ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 (H >= 512) and I % 128 == 0"
         # TODO: this assertion does not mean that the MoE impl prohibits such config.
         # Instead, we just do not search for the best configs manually yet for small-shaped MoE
@@ -156,11 +156,11 @@ class HopperWgmma_MoE_Down_proj_Fwd:
     def __init__(self, E: int, H: int, I: int):
         super().__init__()
         assert (
-            H % 64 == 0 and H >= 512 and I % 64 == 0
+            H % 64 == 0 and I % 64 == 0
         ), f"{LIBRARY_NAME} only supports MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
         if I >= 1024:
             down_config = HopperGEMMConfig(
-                tile_shape_mnk=(128, 256, 64),
+                tile_shape_mnk=(128, 128, 64),
                 cluster_shape_mnk=(2, 1),
                 epi_tile_size=32,
                 is_pingpong=False,
@@ -169,7 +169,7 @@ class HopperWgmma_MoE_Down_proj_Fwd:
             )
         elif I >= 256:
             down_config = HopperGEMMConfig(
-                tile_shape_mnk=(128, 192, 64),
+                tile_shape_mnk=(128, 128, 64),
                 cluster_shape_mnk=(2, 1),
                 epi_tile_size=(96 if H % 96 == 0 else 64),
                 is_pingpong=True,
@@ -178,7 +178,7 @@ class HopperWgmma_MoE_Down_proj_Fwd:
             )
         elif I >= 64:
             down_config = HopperGEMMConfig(
-                tile_shape_mnk=(128, 192, 64),
+                tile_shape_mnk=(128, 128, 64),
                 cluster_shape_mnk=(1, 2),
                 epi_tile_size=64,
                 is_pingpong=True,
@@ -239,11 +239,11 @@ class HopperWgmma_MoE_Down_proj_ActGrad_Bwd:
         is_glu_activation = is_glu(activation_type)
         if is_glu_activation:
             assert (
-                H % 64 == 0 and H >= 512 and I % 64 == 0
+                H % 64 == 0 and I % 64 == 0
             ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
         else:
             assert (
-                H % 64 == 0 and H >= 512 and I % 128 == 0
+                H % 64 == 0 and I % 128 == 0
             ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 (H >= 512) and I % 128 == 0"
 
         # heavy register pressure due to pingpong + heavy epilogue
@@ -354,7 +354,7 @@ class HopperWgmma_MoE_Down_proj_WeightGrad_Bwd:
     def __init__(self, E: int, H: int, I: int):
         super().__init__()
         assert (
-            H % 64 == 0 and H >= 512 and I % 64 == 0
+            H % 64 == 0 and I % 64 == 0
         ), f"{LIBRARY_NAME} only supports MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
 
         if I >= 128:
@@ -428,16 +428,16 @@ class HopperWgmma_MoE_Up_proj_ActGrad_Bwd:
         super().__init__()
         if is_glu_activation:
             assert (
-                H % 64 == 0 and H >= 512 and I % 64 == 0
+                H % 64 == 0 and I % 64 == 0
             ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
         else:
             assert (
-                H % 64 == 0 and H >= 512 and I % 128 == 0
+                H % 64 == 0 and I % 128 == 0
             ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 (H >= 512) and I % 128 == 0"
 
         if (I >= 512 and is_glu_activation) or (I >= 1024 and not is_glu_activation):
             dx_config = HopperGEMMConfig(
-                tile_shape_mnk=(128, 256, 64),
+                tile_shape_mnk=(128, 128, 64),
                 cluster_shape_mnk=(2, 1),
                 epi_tile_size=32,
                 is_pingpong=False,
@@ -446,7 +446,7 @@ class HopperWgmma_MoE_Up_proj_ActGrad_Bwd:
             )
         elif (I >= 64 and is_glu_activation) or (I >= 128 and not is_glu_activation):
             dx_config = HopperGEMMConfig(
-                tile_shape_mnk=(128, 192, 64),
+                tile_shape_mnk=(128, 128, 64),
                 cluster_shape_mnk=(2, 1),
                 epi_tile_size=64,
                 is_pingpong=True,
@@ -508,11 +508,11 @@ class HopperWgmma_MoE_Up_proj_WeightGrad_Bwd:
         super().__init__()
         if is_glu_activation:
             assert (
-                H % 64 == 0 and H >= 512 and I % 64 == 0
+                H % 64 == 0 and I % 64 == 0
             ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
         else:
             assert (
-                H % 64 == 0 and H >= 512 and I % 128 == 0
+                H % 64 == 0 and I % 128 == 0
             ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 (H >= 512) and I % 128 == 0"
 
         if (I >= 128 and is_glu_activation) or (I >= 256 and not is_glu_activation):
