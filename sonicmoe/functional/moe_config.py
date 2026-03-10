@@ -43,11 +43,11 @@ class HopperWgmma_MoE_Up_proj_Fwd:
         if is_glu_activation:
             assert (
                 H % 64 == 0 and I % 64 == 0
-            ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
+            ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 and I % 64 == 0"
         else:
             assert (
                 H % 64 == 0 and I % 128 == 0
-            ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 (H >= 512) and I % 128 == 0"
+            ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 and I % 128 == 0"
         # TODO: this assertion does not mean that the MoE impl prohibits such config.
         # Instead, we just do not search for the best configs manually yet for small-shaped MoE
         if (I >= 128 and is_glu_activation) or (I >= 256 and not is_glu_activation):
@@ -157,7 +157,7 @@ class HopperWgmma_MoE_Down_proj_Fwd:
         super().__init__()
         assert (
             H % 64 == 0 and I % 64 == 0
-        ), f"{LIBRARY_NAME} only supports MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
+        ), f"{LIBRARY_NAME} only supports MoE with H % 64 == 0 and I % 64 == 0"
         if I >= 1024:
             down_config = HopperGEMMConfig(
                 tile_shape_mnk=(128, 128, 64),
@@ -240,11 +240,11 @@ class HopperWgmma_MoE_Down_proj_ActGrad_Bwd:
         if is_glu_activation:
             assert (
                 H % 64 == 0 and I % 64 == 0
-            ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
+            ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 and I % 64 == 0"
         else:
             assert (
                 H % 64 == 0 and I % 128 == 0
-            ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 (H >= 512) and I % 128 == 0"
+            ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 and I % 128 == 0"
 
         # heavy register pressure due to pingpong + heavy epilogue
         #   effectively no alternatives to this config
@@ -355,7 +355,7 @@ class HopperWgmma_MoE_Down_proj_WeightGrad_Bwd:
         super().__init__()
         assert (
             H % 64 == 0 and I % 64 == 0
-        ), f"{LIBRARY_NAME} only supports MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
+        ), f"{LIBRARY_NAME} only supports MoE with H % 64 == 0 and I % 64 == 0"
 
         if I >= 128:
             dw2_config = HopperGEMMConfig(
@@ -429,11 +429,11 @@ class HopperWgmma_MoE_Up_proj_ActGrad_Bwd:
         if is_glu_activation:
             assert (
                 H % 64 == 0 and I % 64 == 0
-            ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
+            ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 and I % 64 == 0"
         else:
             assert (
                 H % 64 == 0 and I % 128 == 0
-            ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 (H >= 512) and I % 128 == 0"
+            ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 and I % 128 == 0"
 
         if (I >= 512 and is_glu_activation) or (I >= 1024 and not is_glu_activation):
             dx_config = HopperGEMMConfig(
@@ -509,11 +509,11 @@ class HopperWgmma_MoE_Up_proj_WeightGrad_Bwd:
         if is_glu_activation:
             assert (
                 H % 64 == 0 and I % 64 == 0
-            ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 (H >= 512) and I % 64 == 0"
+            ), f"{LIBRARY_NAME} only supports GLU MoE with H % 64 == 0 and I % 64 == 0"
         else:
             assert (
                 H % 64 == 0 and I % 128 == 0
-            ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 (H >= 512) and I % 128 == 0"
+            ), f"{LIBRARY_NAME} only supports non-GLU MoE with H % 64 == 0 and I % 128 == 0"
 
         if (I >= 128 and is_glu_activation) or (I >= 256 and not is_glu_activation):
             dw1_config = HopperGEMMConfig(
