@@ -4,7 +4,6 @@
 
 from setuptools import find_packages, setup
 
-
 VERSION = "0.0.1"
 
 setup(
@@ -12,7 +11,10 @@ setup(
     version=VERSION,
     author="Wentao Guo, Mayank Mishra, Xinle Cheng, Ion Stoica, Tri Dao",
     url="",
-    packages=find_packages("./"),
+    packages=find_packages(
+        where=".", 
+        exclude=["tests", "tests.*", "docs", "docs.*", "assets", "assets.*", "benchmarks*", "benchmarks.*"]
+    ),
     include_package_data=True,
     package_data={"": ["**/*.cu", "**/*.cpp", "**/*.cuh", "**/*.h", "**/*.pyx", "**/*.yml"]},
 )
