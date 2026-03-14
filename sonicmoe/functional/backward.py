@@ -204,6 +204,7 @@ def _up_projection_backward_act(
     s_scatter_idx: torch.Tensor,
     is_glu_activation: bool,
     stream_id: int,
+    mh_moe_process: bool = False,
 ) -> None:
     I, H, E = w1.size()
     if is_glu_activation:
@@ -228,7 +229,7 @@ def _up_projection_backward_act(
 
     compile_dx_key = ("dx", E, H, I, is_glu_activation, dx_expanded.dtype)
     if compile_dx_key not in _up_projection_backward_act.compile_cache:
-        dx_module = HopperWgmma_MoE_Up_proj_ActGrad_Bwd(E, H, I, is_glu_activation)
+        dx_module = HopperWgmma_MoE_Up_proj_ActGrad_Bwd(E, H, I, is_glu_activation, mh_moe_process=mh_moe_process)
         tensormaps = [dx_module.module.generate_tensormap(None, None, None) for _ in range(2)]
         _up_projection_backward_act.compile_cache[compile_dx_key] = cute.compile(
             dx_module,
@@ -271,6 +272,7 @@ def _up_projection_backward_weight(
     x_gather_idx: torch.Tensor,
     is_glu_activation: bool,
     stream_id: int,
+    mh_moe_process: bool = False,
 ) -> None:
     I, H, E = dw1.size()
     if is_glu_activation:
@@ -293,7 +295,7 @@ def _up_projection_backward_weight(
 
     compile_dw1_key = ("dw1", E, H, I, is_glu_activation, x.dtype)
     if compile_dw1_key not in _up_projection_backward_weight.compile_cache:
-        dw1_module = HopperWgmma_MoE_Up_proj_WeightGrad_Bwd(E, H, I, is_glu_activation)
+        dw1_module = HopperWgmma_MoE_Up_proj_WeightGrad_Bwd(E, H, I, is_glu_activation, mh_moe_process=mh_moe_process)
         tensormaps = [dw1_module.module.generate_tensormap(None, None, None) for _ in range(1)]
         _up_projection_backward_weight.compile_cache[compile_dw1_key] = cute.compile(
             dw1_module,
@@ -342,6 +344,7 @@ def _down_projection_backward_act(
     is_glu_activation: bool,
     activation_type: str,
     stream_id: int,
+    mh_moe_process: bool = False,
 ) -> None:
     H, I, E = w2.size()
     TK = x_gather_idx.size(0)
@@ -380,7 +383,7 @@ def _down_projection_backward_act(
     if compile_dz_key not in _down_projection_backward_act.compile_cache:
         # I don't know why but this sync appears to fix a mysterious initialization bug??
         torch.cuda.synchronize()
-        dz_module = HopperWgmma_MoE_Down_proj_ActGrad_Bwd(E, H, I, ActivationType(activation_type))
+        dz_module = HopperWgmma_MoE_Down_proj_ActGrad_Bwd(E, H, I, ActivationType(activation_type), mh_moe_process=mh_moe_process)
         tensormaps = [dz_module.module.generate_tensormap(None, None, None) for _ in range(3)]
 
         ds_partial_N = max(ceil_divide(I, dz_module.module.tile_shape_mnk[1]), 1)
@@ -488,6 +491,7 @@ def _down_projection_backward_weight(
     expert_schedule_order: torch.Tensor | None,
     x_gather_idx: torch.Tensor,
     stream_id: int,
+    mh_moe_process: bool = False,
 ) -> None:
     H, I, E = dw2.size()
 
@@ -505,7 +509,7 @@ def _down_projection_backward_weight(
 
     compile_dw2_key = ("dw2", E, H, I, dw2.dtype)
     if compile_dw2_key not in _down_projection_backward_weight.compile_cache:
-        dw2_module = HopperWgmma_MoE_Down_proj_WeightGrad_Bwd(E, H, I)
+        dw2_module = HopperWgmma_MoE_Down_proj_WeightGrad_Bwd(E, H, I, mh_moe_process=mh_moe_process)
         tensormaps = [dw2_module.module.generate_tensormap(None, None, None) for _ in range(1)]
         _down_projection_backward_weight.compile_cache[compile_dw2_key] = cute.compile(
             dw2_module,

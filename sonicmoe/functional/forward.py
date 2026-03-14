@@ -64,6 +64,7 @@ def _up_projection_forward(
     activation_type: str,
     is_glu_activation: bool,
     is_inference_mode_enabled: bool = False,
+    mh_moe_process: bool = False,
 ) -> None:
     I, H, E = w1.size()
     if is_glu_activation:
@@ -91,7 +92,7 @@ def _up_projection_forward(
     compile_w1_key = (E, H, I, (b1 is None), x.dtype, activation_type, is_inference_mode_enabled)
     if compile_w1_key not in _up_projection_forward.compile_cache:
         w1_module = HopperWgmma_MoE_Up_proj_Fwd(
-            E, H, I, activation_type=ActivationType(activation_type), inference_mode=is_inference_mode_enabled
+            E, H, I, activation_type=ActivationType(activation_type), inference_mode=is_inference_mode_enabled, mh_moe_process=mh_moe_process
         )
         tensormaps = [w1_module.module.generate_tensormap(None, None, None) for _ in range(2)]
         _up_projection_forward.compile_cache[compile_w1_key] = cute.compile(
@@ -139,6 +140,7 @@ def _down_projection_forward(
     expert_schedule_order: torch.Tensor,
     x_gather_idx: torch.Tensor,
     stream_id: int,
+    mh_moe_process: bool = False,
 ) -> None:
     H, I, E = w2.size()
 
@@ -162,7 +164,7 @@ def _down_projection_forward(
 
     compile_w2_key = (E, H, I, (b2 is None), w2.dtype)
     if compile_w2_key not in _down_projection_forward.compile_cache:
-        w2_module = HopperWgmma_MoE_Down_proj_Fwd(E, H, I)
+        w2_module = HopperWgmma_MoE_Down_proj_Fwd(E, H, I, mh_moe_process=mh_moe_process)
         tensormaps = [w2_module.module.generate_tensormap(None, None, None) for _ in range(1)]
         _down_projection_forward.compile_cache[compile_w2_key] = cute.compile(
             w2_module, mY1, mW2, mY2, mB2, mE_offset, mX_gather, tensormaps[0], mE_permute_order, current_stream
