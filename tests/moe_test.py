@@ -26,6 +26,9 @@ class MoETest(TestCommons):
                 # T, H, I, E, K
                 # test for small hidden size
                 (8192, 128, 256, 128, 8),
+                # test for long seqlen
+                ((16384 + 256) * 32, 256, 512, 128, 8),
+                ((16384 + 256) * 32, 512, 128, 128, 8),
                 # original test
                 (8192, 768, 256, 128, 8),
                 (8192, 768, 512, 64, 4),
