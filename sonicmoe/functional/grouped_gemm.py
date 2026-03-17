@@ -1101,13 +1101,20 @@ class HopperWgmma_MoE_kernel:
         tensormap_smem_ptr: Optional[cute.Pointer] = None,
         address_space: cute.AddressSpace = cute.AddressSpace.generic,
     ) -> cute.Pointer:
+        elem_bytes = cutlass.Int64(mTensor.element_type.width // 8)
         if const_expr(self.compute_weight_gradient):
             tensor_shape = (mTensor.shape[0], token_group_size)
-            start_ptr = (mTensor.iterator + token_start * mTensor.stride[1]).toint()
+            start_ptr = (
+                mTensor.iterator.toint()
+                + cutlass.Int64(token_start) * cutlass.Int64(mTensor.stride[1]) * elem_bytes
+            )
         else:
             tensor_shape = (token_group_size, mTensor.shape[1])
-            start_ptr = (mTensor.iterator + token_start * mTensor.stride[0]).toint()
-
+            start_ptr = (
+                mTensor.iterator.toint()
+                + cutlass.Int64(token_start) * cutlass.Int64(mTensor.stride[0]) * elem_bytes
+            )
+        
         tensor_gmem_ptr = cute.make_ptr(
             mTensor.element_type,
             start_ptr,
